@@ -1674,13 +1674,13 @@ class SteamWatchPlugin(Star):
                     if game.get("appid") == appid:
                         return "已拥有"
 
-                return "未拥有"
+                return "未拥有/假入库"
 
             except Exception:
                 if attempt < retries:
                     await asyncio.sleep(retry_delay)
                     continue
-                return "未公开"
+                return "未公开/未拥有"
 
     # ------------------------
     # Helpers: config/bindings
