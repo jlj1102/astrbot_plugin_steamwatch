@@ -970,24 +970,44 @@ class SteamWatchPlugin(Star):
         用法:
         verifygame <用户/绑定/SteamID/链接/好友码>
         """
-
         target = self._extract_target_or_at(event, raw)
-        steamid64, err = await self._resolve_to_steamid64(event, target)
-
-        if err:
-            yield event.plain_result(err)
+        if not target:
+            yield event.plain_result("用法：/sw info <steamid64|profile_url|vanity|friend_code|me>")
+            return
+        steamid, error = await self._resolve_to_steamid64(event, target)
+        if not steamid:
+            yield event.plain_result(error or "无法解析 SteamID。")
+            return
+        api_key = self.config.get("steam_web_api_key", "")
+        if not api_key:
+            yield event.plain_result("未配置 Steam Web API Key。")
+            return
+        summaries = await self._fetch_player_summaries(api_key, [steamid])
+        if not summaries:
+            yield event.plain_result("未获取到该 SteamID 信息。")
+            return
+        player = summaries.get(steamid)
+        if not player:
+            yield event.plain_result("未获取到该 SteamID 信息。")
             return
 
-        if not steamid64:
+        if error:
+            yield event.plain_result(error)
+            return
+
+        if not steamid:
             yield event.plain_result("无法解析steamid64。")
             return
 
-        status = await self._check_game_ownership(steamid64)
+        status = await self._check_game_ownership(steamid)
 
-        profile_url = f"https://steamcommunity.com/profiles/{steamid64}"
+        profile_url = f"https://steamcommunity.com/profiles/{steamid}"
+        name = player.get("personaname", steamid)
 
         msg = (
-            f"SteamID64: {steamid64}\n"
+            f"\"\n"
+            f"Steam账户名: {name}\n"
+            f"SteamID64: {steamid}\n"
             f"个人资料: {profile_url}\n"
             f"拥有状态: {status}"
         )
