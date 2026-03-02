@@ -24,6 +24,11 @@
     "description": "重试间隔（秒）",
     "default": 2
   },
+  "verify_game_appid": {
+    "type": "int",
+    "description": "verifygame 指令检测的 Steam AppID",
+    "default": 977950
+  },
   "proxy_url": {
     "type": "string",
     "description": "代理地址（可选，例如 http://127.0.0.1:7890）",

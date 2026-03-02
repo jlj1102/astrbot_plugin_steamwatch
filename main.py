@@ -323,6 +323,11 @@ class SteamWatchPlugin(Star):
         async for item in self._cmd_me(event):
             yield item
 
+    @filter.command("verifygame")
+    async def verify_game(self, event: AstrMessageEvent, steamid: str = ""):
+        """检测是否拥有 A Dance of Fire and Ice"""
+        async for item in self._cmd_verifygame(event, [steamid] if steamid else []):
+            yield item
     # ------------------------
     # Command handlers
     # ------------------------
@@ -960,6 +965,34 @@ class SteamWatchPlugin(Star):
             extra = f"（CS:GO 好友码：{csgo_code}）"
         yield event.plain_result(f"当前绑定：{friend_code}（64ID：{steamid}）{extra}")
 
+    async def verifygame(self, event: AstrMessageEvent, raw: str):
+        """
+        用法:
+        verifygame <用户/绑定/SteamID/链接/好友码>
+        """
+
+        steamid64, err = await self._resolve_to_steamid64(event, raw)
+
+        if err:
+            yield event.plain_result(err)
+            return
+
+        if not steamid64:
+            yield event.plain_result("无法解析steamid64。")
+            return
+
+        status = await self._check_game_ownership(steamid64)
+
+        profile_url = f"https://steamcommunity.com/profiles/{steamid64}"
+
+        msg = (
+            f"SteamID64: {steamid64}\n"
+            f"个人资料: {profile_url}\n"
+            f"拥有状态: {status}"
+        )
+
+        yield event.plain_result(msg)
+
     async def _menu_text(self, event: AstrMessageEvent):
         lines = [
             "========== SteamWatch 菜单 ==========",
@@ -1575,6 +1608,58 @@ class SteamWatchPlugin(Star):
             if cur:
                 out.append(cur)
         return out or [text]
+
+    async def _check_game_ownership(self, steamid64: str) -> str:
+        """
+        返回:
+        - 已拥有
+        - 未拥有
+        - 未公开
+        """
+
+        api_key = self.config.get("steam_web_api_key", "")
+        if not api_key:
+            return "未公开"
+
+        appid = int(self.config.get("verify_game_appid", 977950))
+        timeout = int(self.config.get("request_timeout_sec", 10))
+        retries = int(self.config.get("request_retries", 2))
+        retry_delay = int(self.config.get("request_retry_delay_sec", 2))
+
+        url = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
+        params = {
+            "key": api_key,
+            "steamid": steamid64,
+            "include_appinfo": False,
+            "include_played_free_games": True,
+        }
+
+        for attempt in range(retries + 1):
+            try:
+                async with self._create_http_client(timeout) as client:
+                    resp = await client.get(url, params=params)
+
+                if resp.status_code != 200:
+                    return "未公开"
+
+                data = resp.json().get("response", {})
+                games = data.get("games")
+
+                # 未公开 或 私密
+                if games is None:
+                    return "未公开"
+
+                for game in games:
+                    if game.get("appid") == appid:
+                        return "已拥有"
+
+                return "未拥有"
+
+            except Exception:
+                if attempt < retries:
+                    await asyncio.sleep(retry_delay)
+                    continue
+                return "未公开"
 
     # ------------------------
     # Helpers: config/bindings
