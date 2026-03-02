@@ -971,7 +971,8 @@ class SteamWatchPlugin(Star):
         verifygame <用户/绑定/SteamID/链接/好友码>
         """
 
-        steamid64, err = await self._resolve_to_steamid64(event, raw)
+        target = self._extract_target_or_at(event, raw)
+        steamid64, err = await self._resolve_to_steamid64(event, target)
 
         if err:
             yield event.plain_result(err)
