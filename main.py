@@ -324,9 +324,9 @@ class SteamWatchPlugin(Star):
             yield item
 
     @filter.command("verifygame")
-    async def verify_game(self, event: AstrMessageEvent, steamid: str = ""):
+    async def verify_game(self, event: AstrMessageEvent, target: str = ""):
         """检测是否拥有 A Dance of Fire and Ice"""
-        async for item in self._cmd_verifygame(event, [steamid] if steamid else []):
+        async for item in self._cmd_verifygame(event, [target] if target else []):
             yield item
     # ------------------------
     # Command handlers
@@ -965,7 +965,7 @@ class SteamWatchPlugin(Star):
             extra = f"（CS:GO 好友码：{csgo_code}）"
         yield event.plain_result(f"当前绑定：{friend_code}（64ID：{steamid}）{extra}")
 
-    async def _cmd_verifygame(self, event: AstrMessageEvent, raw: str):
+    async def _cmd_verifygame(self, event: AstrMessageEvent, raw: List[str]):
         """
         用法:
         verifygame <用户/绑定/SteamID/链接/好友码>
