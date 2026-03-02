@@ -965,7 +965,7 @@ class SteamWatchPlugin(Star):
             extra = f"（CS:GO 好友码：{csgo_code}）"
         yield event.plain_result(f"当前绑定：{friend_code}（64ID：{steamid}）{extra}")
 
-    async def verifygame(self, event: AstrMessageEvent, raw: str):
+    async def _cmd_verifygame(self, event: AstrMessageEvent, raw: str):
         """
         用法:
         verifygame <用户/绑定/SteamID/链接/好友码>
