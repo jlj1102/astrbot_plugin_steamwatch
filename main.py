@@ -1005,7 +1005,7 @@ class SteamWatchPlugin(Star):
         name = player.get("personaname", steamid)
 
         msg = (
-            f"\"\n"
+            f"\n"
             f"Steam账户名: {name}\n"
             f"SteamID64: {steamid}\n"
             f"个人资料: {profile_url}\n"
