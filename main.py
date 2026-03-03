@@ -972,7 +972,7 @@ class SteamWatchPlugin(Star):
         """
         target = self._extract_target_or_at(event, raw)
         if not target:
-            yield event.plain_result("用法：/sw info <steamid64|profile_url|vanity|friend_code|me>")
+            yield event.plain_result("用法：/verifygame <steamid64|profile_url|vanity|friend_code|me>")
             return
         steamid, error = await self._resolve_to_steamid64(event, target)
         if not steamid:
