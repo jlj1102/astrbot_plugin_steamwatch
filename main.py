@@ -999,9 +999,10 @@ class SteamWatchPlugin(Star):
             yield event.plain_result("无法解析steamid64。")
             return
 
+        game_name = player.get("gameextrainfo")
         status = await self._check_game_ownership(steamid)
         playtime = await self._fetch_game_playtime(api_key, steamid, int(self.config.get("verify_game_appid")))
-
+        gname = await self._get_localized_game_name(int(self.config.get("verify_game_appid")), game_name)
         if playtime <= 2:
             playtime_text = f"{playtime} 小时（谨慎通过，可能退款）"
         else:            
@@ -1013,6 +1014,7 @@ class SteamWatchPlugin(Star):
             f"\n"
             f"Steam账户名: {name}\n"
             f"SteamID64: {steamid}\n"
+            f"游戏名称: {gname}\n"
             f"拥有状态: {status}\n"
             f"游戏时长: {playtime_text}\n"
         )
