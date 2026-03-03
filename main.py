@@ -1001,7 +1001,7 @@ class SteamWatchPlugin(Star):
 
         status = await self._check_game_ownership(steamid)
         playtime = await self._fetch_game_playtime(api_key, steamid, int(self.config.get("verify_game_appid")))
-        gname = await self._get_localized_game_name(int(self.config.get("verify_game_appid")))
+        gname = await self._get_localized_game_name(int(self.config.get("verify_game_appid")),"验证游戏")
         if playtime <= 2:
             playtime_text = f"{playtime} 小时（谨慎通过，可能退款）"
         else:            
