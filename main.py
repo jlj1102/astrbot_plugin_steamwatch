@@ -1000,6 +1000,7 @@ class SteamWatchPlugin(Star):
             return
 
         status = await self._check_game_ownership(steamid)
+        playtime = await self._fetch_game_playtime(api_key, steamid, int(self.config.get("verify_game_appid")))
 
         profile_url = f"https://steamcommunity.com/profiles/{steamid}"
         name = player.get("personaname", steamid)
@@ -1009,7 +1010,8 @@ class SteamWatchPlugin(Star):
             f"Steam账户名: {name}\n"
             f"SteamID64: {steamid}\n"
             f"个人资料: {profile_url}\n"
-            f"拥有状态: {status}"
+            f"拥有状态: {status}\n"
+            f"游戏时长: {playtime} 小时\n" 
         )
 
         yield event.plain_result(msg)
@@ -1651,7 +1653,7 @@ class SteamWatchPlugin(Star):
         params = {
             "key": api_key,
             "steamid": steamid64,
-            "include_appinfo": False,
+            "include_appinfo": True,
             "include_played_free_games": True,
         }
 
