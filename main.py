@@ -1002,16 +1002,19 @@ class SteamWatchPlugin(Star):
         status = await self._check_game_ownership(steamid)
         playtime = await self._fetch_game_playtime(api_key, steamid, int(self.config.get("verify_game_appid")))
 
-        profile_url = f"https://steamcommunity.com/profiles/{steamid}"
+        if playtime <= 2:
+            playtime_text = f"{playtime} 小时（谨慎通过，可能退款）"
+        else:            
+            playtime_text = f"{playtime} 小时"
+
         name = player.get("personaname", steamid)
 
         msg = (
             f"\n"
             f"Steam账户名: {name}\n"
             f"SteamID64: {steamid}\n"
-            f"个人资料: {profile_url}\n"
             f"拥有状态: {status}\n"
-            f"游戏时长: {playtime} 小时\n" 
+            f"游戏时长: {playtime_text}\n"
         )
 
         yield event.plain_result(msg)
@@ -1066,6 +1069,8 @@ class SteamWatchPlugin(Star):
             "",
             "菜单：",
             "/steamwatch_menu",
+            "ADOFAI Online特制模块：",
+            "/verifygame"
         ]
         yield event.plain_result("\n".join(lines))
 

@@ -1,5 +1,7 @@
 ﻿# astrbot_plugin_steamwatch
 
+### 这个Fork新增了对单独steam游戏的审核检查
+
 监控 SteamID 是否在进行游戏，并推送通知。支持绑定与 @用户查询、分群订阅、代理与连通性测试，以及游戏时长/成就等信息展示。
 
 ## 前置要求
@@ -26,6 +28,7 @@
 - `request_timeout_sec`：请求超时（秒）
 - `request_retries`：请求重试次数
 - `request_retry_delay_sec`：重试间隔（秒）
+- `verify_game_appid`：检测的游戏appid
 - `proxy_url`：代理地址（可选，例如 http://127.0.0.1:7890）
 - `debug_log`：是否开启调试日志
 - `render_as_image`：是否将查询/通知文本渲染为图片发送
@@ -120,6 +123,7 @@
 - `/steamwatch_bind <steamid64|profile_url|vanity|friend_code>` 绑定自己的 SteamID
 - `/steamwatch_unbind [user_id]` 解除绑定（可选参数仅管理员）
 - `/steamwatch_me` 查看自己的绑定
+- `/verifygame` 验证是否有某款游戏
 
 ## 好友码说明
 支持：
@@ -204,3 +208,6 @@
 
 ### v1.2.3
 - 优化 AstrBot 行为列表，补充指令介绍
+
+### v1.2.3.1
+- 新增了`/verifygame` 指令
