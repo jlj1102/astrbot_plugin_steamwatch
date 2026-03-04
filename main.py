@@ -8,6 +8,7 @@ import re
 import shlex
 import time
 from typing import Dict, List, Optional, Tuple
+import sqlite3 as sql
 
 import httpx
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -970,6 +971,16 @@ class SteamWatchPlugin(Star):
         用法:
         verifygame <用户/绑定/SteamID/链接/好友码>
         """
+
+        sqlc = sql.connect("verified.db")
+        cursor = sqlc.cursor()
+        cursor.execute("""CREATE TABLE IF NOT EXISTS verified_users 
+                       (
+                            steamid64 TEXT PRIMARY KEY,
+                            count INTEGER,
+                            last_verified TIMESTAMP
+                            )
+        """)
         target = self._extract_target_or_at(event, raw)
         if not target:
             yield event.plain_result("用法：/verifygame <steamid64|profile_url|vanity|friend_code|me>")
@@ -990,7 +1001,6 @@ class SteamWatchPlugin(Star):
         if not player:
             yield event.plain_result("未获取到该 SteamID 信息。")
             return
-
         if error:
             yield event.plain_result(error)
             return
@@ -998,6 +1008,14 @@ class SteamWatchPlugin(Star):
         if not steamid:
             yield event.plain_result("无法解析steamid64。")
             return
+
+        cursor.execute("SELECT count, last_verified FROM verified_users WHERE steamid64 = ?", (steamid,))
+        result = cursor.fetchone()
+        if result:
+            count, last_verified = result
+        else:
+            count = 0
+            last_verified = None
 
         status = await self._check_game_ownership(steamid)
         playtime = await self._fetch_game_playtime(api_key, steamid, int(self.config.get("verify_game_appid")))
@@ -1007,6 +1025,10 @@ class SteamWatchPlugin(Star):
         else:            
             playtime_text = f"{playtime} 小时"
 
+        if count != 0:
+            counttest = f"⚠️：这个账户已经检查过 {count} 次了！"
+            yield event.plain_result(counttest)
+        
         name = player.get("personaname", steamid)
 
         msg = (
@@ -1016,10 +1038,15 @@ class SteamWatchPlugin(Star):
             f"游戏名称: {gname}\n"
             f"拥有状态: {status}\n"
             f"游戏时长: {playtime_text}\n"
+            f"上次验证时间: {last_verified}\n"
         )
 
         yield event.plain_result(msg)
-
+        cursor.execute("INSERT INTO verified_users (steamid64, count, last_verified) VALUES (?, ?, ?) ON CONFLICT(steamid64) DO UPDATE SET count = count + 1, last_verified = ?",
+                       (steamid, count + 1, datetime.now(), datetime.now()))
+        sqlc.commit()
+        sqlc.close()
+        
     async def _menu_text(self, event: AstrMessageEvent):
         lines = [
             "========== SteamWatch 菜单 ==========",
