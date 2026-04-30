@@ -16,6 +16,7 @@ from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageChain, filter
 from astrbot.api.star import Context, Star, register
 from astrbot.core.platform.message_type import MessageType
+from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 
 STEAMID64_BASE = 76561197960265728
 STEAMID64_BASE_HEX = 0x110000100000000
@@ -971,8 +972,8 @@ class SteamWatchPlugin(Star):
         用法:
         verifygame <用户/绑定/SteamID/链接/好友码>
         """
-
-        sqlc = sql.connect("verified.db")
+        plugin_data_path = Path(get_astrbot_data_path()) / "plugin_data" / self.name
+        sqlc = sql.connect(plugin_data_path / "verified.db")
         cursor = sqlc.cursor()
         cursor.execute("""CREATE TABLE IF NOT EXISTS verified_users 
                        (
