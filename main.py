@@ -973,6 +973,7 @@ class SteamWatchPlugin(Star):
         verifygame <用户/绑定/SteamID/链接/好友码>
         """
         plugin_data_path = Path(get_astrbot_data_path()) / "plugin_data" / self.name
+        plugin_data_path.mkdir(parents=True, exist_ok=True)
         sqlc = sql.connect(f"{plugin_data_path}/verified.db")
         cursor = sqlc.cursor()
         cursor.execute("""CREATE TABLE IF NOT EXISTS verified_users 
